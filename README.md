@@ -20,7 +20,7 @@
 1. TODO - add info on how to create the flask secret.
 
 
-### Cloud Run
+### Create the Cloud Run Function "project" 
 1. Go to **Cloud Run Functions**
 1. Click **Services** in the side bar.
 1. Along the top find the **(...) Write a function link**
@@ -31,11 +31,13 @@
 1. Choose **Allow Public Access** during initial set up for ease of testing. (Later you will lock it down)
 1. Click **Create**.
 
+### Copy the files into the Function "project" 
 1. Replace the **requirements.txt** and **main.py** file contents with the file contents from this repo.
 1. Add an **app.py** file like the one in this repo.
 1. Change the function entrypoint to **linkedinposter**
 1. Click **Save and redeploy**
 
+### Add Links from Cloud Run to your Secrets
 1. After the redeployment is complete, find 🖊️ **Edit & deploy new revision** near the top of the page and click it.
 1. You are on the **Containers** MAIN tab. 
 1. Halfway down the **Containers** page look for the blue second-level "tab" called **Settings**. Choose **Variables & Secrets** (tag next to it)
@@ -47,7 +49,17 @@
 1. Add Roles **Secret Manager Secret Accessor** and **Cloud Run Invoker** to the service account.
 1. Click **Done**.
 
+### Test Setup So Far
 1. Back on the Deploy Revision interface, go to the bottom and click **Deploy**. It will likely fail saying something like $${\color{red}The\space service\space account\space used\space must\space be\space granted\space the\space 'Secret\space Manager\space Secret\space Accessor'\space role}$$
+
+### Create a Service Account 
+1. After the redeployment has failed, use 🖊️ **Edit & deploy new revision** near the top of the page again.
+1. You are on the **Containers** MAIN tab. Switch to the **Security** tab. 
+1. In the **Service Account** field, choose **Create new service account**.
+1. A sidebar will open and the default name will match your Cloud Run "project" name. I always add a dash and "sa" for Service Account.
+1. Click Create.
+2. In the Step 2 area add roles: **Cloud Run Invoker, Secret Manager Secret Accessor**
+4. Switching your focus back to the main Service Details interface, click Deploy. There should be no errors this time. 
 
 ## Test Cloud Run
 1. Find the service URL. It will be your Cloud run name, a hashed number, your region, and run.app.
