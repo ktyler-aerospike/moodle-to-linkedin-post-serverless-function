@@ -1,5 +1,5 @@
 **LINKEDIN DEVELOPER ACCOUNT AND APP**
-1.Begin by signing up for a LinkedIn developer account. 
+1. Begin by signing up for a LinkedIn developer account. 
 1. On the https://www.linkedin.com/developers/apps?appStatus=active select **Create App.** and fill out the form.
 1. When the app you created opens, choose the **Auth** tab at the top and create a Client Secret. You will need the id and secret for your Cloud Run project.
 1. On the **Products** tab add the **Share on Linkedin** and **Sign In with LinkedIn using OpenID Connect** products or scopes. 
