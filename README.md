@@ -63,7 +63,8 @@
 
 ## Test Cloud Run
 1. Find the service URL. It will be your Cloud run name, a hashed number, your region, and run.app.
-1. Copy and paste the URL somewhere you can easily edit it. 
+1. Copy and paste the URL somewhere you can easily edit it.
+2. Go to the Linkedin developers page and inside your LinkedIn app, find the Auth tab and in the OAuth section add your service URL plus /auth/linkedin/callback as a valid source. 
 1. Add **/auth/linkedin/start?badgeid=aero-101&verifcode=FAKECODE** to the end of the url. 
 1. Copy and paste the whole thing into a browswer tab address bar and click enter. 
 
