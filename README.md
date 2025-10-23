@@ -61,11 +61,18 @@
 2. In the Step 2 area add roles: **Cloud Run Invoker, Secret Manager Secret Accessor**
 4. Switching your focus back to the main Service Details interface, click Deploy. There should be no errors this time. 
 
-## Test Cloud Run
+### Test Cloud Run
 1. Find the service URL. It will be your Cloud run name, a hashed number, your region, and run.app.
 1. Copy and paste the URL somewhere you can easily edit it.
-2. Go to the Linkedin developers page and inside your LinkedIn app, find the Auth tab and in the OAuth section add your service URL plus /auth/linkedin/callback as an Authorized Redirect URL. 
-1. Add **/auth/linkedin/start?badgeid=aero-101&verifcode=FAKECODE** to the end of the url. 
-1. Copy and paste the whole thing into a browswer tab address bar and click enter. 
+2. Go to the Linkedin developers page and inside your LinkedIn app, find the Auth tab and in the OAuth section add your service URL plus **/auth/linkedin/callback** as an Authorized Redirect URL. 
+1. Using the service URL again, add **/auth/linkedin/start?badgeid=aero-101&verifcode=FAKECODE** to the end of the url (instead of /auth/linkedin/callback) 
+1. Copy and paste the whole thing into a browswer tab address bar and click **enter**.
+1. A LinkedIn login screen should appear. After logging in you should see a button. Click the button and view the post created by this service. The verification will not work bc FAKECODE is not a real certificate but the other link should work. When this service is paired with the Moodle plugin, a real certificate code is passed along and can be verified.
+
+## SECURING THE PROCESS
+1. Once the above is working, test it by triggering it from moodle. You will need to go into the Moodle Site Admin Plugins page and find the Local section and click on **LinkedIn Share for Certificates** in the Gateway Endpoint field. put your SERVICE URL again (nothing added to the end) TODO - or do we add auth/linkedin/start (will depend on final solution.
+2. Test the process end to end by triggering the share from the course banner share button. If it works, it's time to lock it down.
+3. We have tried JWT tokens, and a gateway. Now we are trying restricted ingress. We'll have to see what happens. 
+
 
 
