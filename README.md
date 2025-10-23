@@ -21,7 +21,7 @@
 
 
 ### Cloud Run
-1. Go to **Cloud Run**
+1. Go to **Cloud Run Functions**
 1. Click **Services** in the side bar.
 1. Along the top find the **(...) Write a function link**
 1. Choose **Use an inline editor to create a function** (you could alternatively choose the GitHub option)
