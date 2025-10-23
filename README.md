@@ -25,15 +25,17 @@
 1. Click **Services** in the side bar.
 1. Along the top find the **(...) Write a function link**
 1. Choose **Use an inline editor to create a function** (you could alternatively choose the GitHub option)
-1. GIve your service a name.
+1. Give your service a name.
 1. Choose a region near your moodle instance.
 1. Set the endpoint to **Python 3.10**
 1. Choose **Allow Public Access** during initial set up for ease of testing. (Later you will lock it down)
 1. Click **Create**.
+
 1. Replace the **requirements.txt** and **main.py** file contents with the file contents from this repo.
 1. Add an **app.py** file like the one in this repo.
 1. Change the function entrypoint to **linkedinposter**
 1. Click **Save and redeploy**
+
 1. After the redeployment is complete, find 🖊️ **Edit & deploy new revision** near the top of the page and click it.
 1. You are on the **Containers** MAIN tab. 
 1. Halfway down the **Containers** page look for the blue second-level "tab" called **Settings**. Choose **Variables & Secrets** (tag next to it)
@@ -44,6 +46,7 @@
 1. Click Create.
 1. Add Roles **Secret Manager Secret Accessor** and **Cloud Run Invoker** to the service account.
 1. Click **Done**.
+
 1. Back on the Deploy Revision interface, go to the bottom and click **Deploy**. It will likely fail saying something like $${\color{red}The\space service\space account\space used\space must\space be\space granted\space the\space 'Secret\space Manager\space Secret\space Accessor'\space role}$$
 
 ## Test Cloud Run
