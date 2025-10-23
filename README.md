@@ -44,7 +44,7 @@
 1. Click Create.
 1. Add Roles **Secret Manager Secret Accessor** and **Cloud Run Invoker** to the service account.
 1. Click **Done**.
-1. Back on the Deploy Revision interface, go to the bottom and click **Deploy**. <span style="color:red;">It will likely fail saying something like <red>The service account used must be granted the 'Secret Manager Secret Accessor' role</span>$${\color{red}This text is red using LaTeX.}$$
+1. Back on the Deploy Revision interface, go to the bottom and click **Deploy**. It will likely fail saying something like $${\color{red}The service account used must be granted the 'Secret Manager Secret Accessor' role}$$
 
 ## Test Cloud Run
 1. Find the service URL. It will be your Cloud run name, a hashed number, your region, and run.app.
