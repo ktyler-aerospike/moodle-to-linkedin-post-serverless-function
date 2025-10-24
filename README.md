@@ -103,12 +103,12 @@
       --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'
    ```
 ## LOAD BALANCER
-NEG - Network Endpoint Group
-Name your NEG the same as your service plus a dash and neg.
+- NEG - Network Endpoint Group
+- Name your NEG the same as your service plus a dash and neg.
 
 1. **SET MORE SESSION VARIABLES**
     ```
-    NEG_NAME=${SERVICE}-"neg" -- this will result in the name "mtl-neg"
+    NEG_NAME=${SERVICE}-"neg" 
     BACKEND=${SERVICE}-backend
     ```
 
