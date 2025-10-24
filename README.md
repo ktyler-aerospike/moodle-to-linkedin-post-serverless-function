@@ -99,9 +99,9 @@
    )'
    ```
 1. **YOU CAN ALSO CHECK THEM BY NAME**
-    ```
+   ```
     gcloud run services describe $SERVICE --region=$REGION \
-  --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'
+      --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'
   ```
    
 1. When the ingress settings are confirmed, there is still no change to the UI bu that's okay. 
@@ -112,8 +112,10 @@ NEG - Network Endpoint Group
 Name your NEG the same as your service plus a dash and neg.
 
 1. **SET MORE SESSION VARIABLES**
-```NEG_NAME=${SERVICE}-"neg" -- this will result in the name "mtl-neg"
-BACKEND=${SERVICE}-backend```
+```
+NEG_NAME=${SERVICE}-"neg" -- this will result in the name "mtl-neg"
+BACKEND=${SERVICE}-backend
+```
 
 ```gcloud compute network-endpoint-groups create $NEG_NAME \
   --region=$REGION \
