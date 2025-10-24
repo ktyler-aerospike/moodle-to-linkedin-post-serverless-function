@@ -184,7 +184,7 @@
 1. The row will show **Active** column with a green circle and checkmark when the DNS record is set up correctly.
 1. Click back into the Certificate to get the info you need to create your second DNS record. 
 
-## YOUR DOMAIN AND DNS MANAGER (for me it's Bluehost)
+## BACK TO YOUR DOMAIN AND DNS MANAGER (for me it's Bluehost)
 ### CREATE ANOTHER CNAME RECORD 
 - projects/static-groove-476019-a5/locations/us-west1/dnsAuthorizations/dns-authz-mtl-bintiholdings-com
 - DNS Record type: CNAME
@@ -192,7 +192,7 @@
 - DNS Record data: 51d52b85-feca-441b-b2d9-ebb88ef9c692.2.us-west1.authorize.certificatemanager.goog.
 
 ## BACK TO GOOGLE CLOUD
-### CREATE THE URL MAP, THE HTTPS PROXY, the CERT and a FORWARDING RULE
+### CREATE THE URL MAP, THE VPC/SUBNET, THE HTTPS PROXY, THE CERT and a FORWARDING RULE
     ```
     HOST=${SERVICE}-bintiholdings.com
     URLMAP=${SERVICE}-urlmap
@@ -200,7 +200,7 @@
     FWR=${SERVICE}--fw
     ```
 
-# URL map (default routes to your backend)
+### URL map (default routes to your backend)
 1. CREATE THE URL MAP:
     ```
     gcloud compute url-maps create $URLMAP \
@@ -212,14 +212,12 @@
     gcloud compute url-maps describe mtl-urlmap --region=$REGION
     ```
 
-### CREATE VPC, SUMBET, HTTPS proxy
+### CREATE VPC, SUMNET, HTTPS proxy
 1. Create Some Variables
     ```
     LB_NAME=mtl-lb
     NETWORK=mtl-lb-network
-    PROXY_SUBNET=proxy-only-subnet
-    PROXY_RANGE=10.129.0.0/23
-    TARGET_PROXY=my-http-proxy
+    TARGET_PROXY=mtl-http-proxy
     FORWARDING_RULE=mtl-fw-rule
     ADDRESS_NAME=my-lb-ip
     ```
@@ -228,24 +226,28 @@
     ```
     gcloud compute networks create $NETWORK --subnet-mode=custom
     ```
-1. Check it was created
+1. **Check it was created**
    ```
    gcloud compute networks list
     ```
+1. ** Use the UI to Create the proxy-only subnet**
+- Locate the VPC you just created and click into it
+- Choose the Subnets tab
+- Click + Add Subnet
+- In the sidebar: Name it mtl-lb-network-subnet
+- Choose your region.
+- Choose Regional Managed Proxy
+- Choose Active
+- Leave box unchecked I guess?
+- Paste 10.129.0.0/23 into IPv4 Range
+- Click Add
+- Your subnet should appear under Reserved proxy-only subnets for load balancing
 
-proxy-only subnet
-gcloud compute networks subnets create $PROXY_SUBNET \
-    --network=$NETWORK \
-    --region=$REGION \
-    --purpose=REGIONAL_MANAGED_PROXY \
-    --ip-cidr-range=$PROXY_RANGE
 
-1. (Assume backend already created: e.g., serverless NEG, instance group, etc)
 
-# 3. Create a URL map
-gcloud compute url-maps create $URL_MAP \
-    --region=$REGION \
-    --default-service=$BACKEND_SERVICE
+   ```   
+
+    ```
 
 # 4. Create target HTTP proxy
 gcloud compute target-http-proxies create $TARGET_PROXY \
