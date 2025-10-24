@@ -103,11 +103,9 @@
     gcloud run services describe $SERVICE --region=$REGION \
       --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'
   ```
-   
 1. When the ingress settings are confirmed, there is still no change to the UI bu that's okay. 
 
-## LOAD BALANCER
-### CREATE NEG AND BACKEND SERVICE
+### LOAD BALANCER
 NEG - Network Endpoint Group
 Name your NEG the same as your service plus a dash and neg.
 
