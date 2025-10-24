@@ -71,27 +71,27 @@
 
 ### Update the INGRESS SETTINGS
 1. You have to use gcloud for this unfortunately.
-    **gcloud auth login**
+    ```gcloud auth login```
 1. Run this command to set 3 variables: 
-    **PROJECT_ID = 'static-groove-476019-a5'**
-    **REGION="us-west1"**
-    **SERVICE="mtl"** (this is the name of your Cloud Run function)
+    ```PROJECT_ID = 'static-groove-476019-a5'
+       REGION="us-west1"
+       SERVICE="mtl"``` (this is the name of your Cloud Run function)
 1. Set your project as context for future commands:
-     **gcloud config set project $PROJECT_ID**
+     ```gcloud config set project $PROJECT_ID```
    
 1. **SET THE INGRESS POLICY:**
-   gcloud run services update $SERVICE \
+   ```gcloud run services update $SERVICE \
      --region=$REGION \
-     --ingress=internal-and-cloud-load-balancing
+     --ingress=internal-and-cloud-load-balancing```
 1. **CHECK THAT THE INGRESS POLICY IS IN EFFECT** 
-   gcloud run services describe $SERVICE --region=$REGION \
+   ```gcloud run services describe $SERVICE --region=$REGION \
    --format='table(
     metadata.annotations["run.googleapis.com/ingress-status"],
-    spec.template.metadata.annotations["run.googleapis.com/ingress"]
+    spec.template.metadata.annotations["run.googleapis.com/ingress"]```
    )'
 1. **YOU CAN ALSO CHECK THEM BY NAME**
-    gcloud run services describe $SERVICE --region=$REGION \
-  --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'
+    ```gcloud run services describe $SERVICE --region=$REGION \
+  --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'```
    
 1. When the ingress settings are confirmed, there is still no change to the UI bu that's okay. 
 
@@ -101,38 +101,38 @@ NEG - Network Endpoint Group
 Name your NEG the same as your service plus a dash and neg.
 
 1. **SET MORE SESSION VARIABLES**
-NEG_NAME=${SERVICE}-"neg" -- this will result in the name "mtl-neg"
-BACKEND=${SERVICE}-backend
+```NEG_NAME=${SERVICE}-"neg" -- this will result in the name "mtl-neg"
+BACKEND=${SERVICE}-backend```
 
-gcloud compute network-endpoint-groups create $NEG_NAME \
+```gcloud compute network-endpoint-groups create $NEG_NAME \
   --region=$REGION \
   --network-endpoint-type=serverless \
-  --cloud-run-service=$SERVICE
+  --cloud-run-service=$SERVICE```
 
 if asked, choose to enable compute.googleapis.com
 
-gcloud compute backend-services create $BACKEND \
+```gcloud compute backend-services create $BACKEND \
   --load-balancing-scheme=EXTERNAL_MANAGED \
   --protocol=HTTP \
-  --region=$REGION
+  --region=$REGION```
 
-gcloud compute backend-services add-backend $BACKEND \
+```gcloud compute backend-services add-backend $BACKEND \
   --region=$REGION \
   --network-endpoint-group=$NEG_NAME \
-  --network-endpoint-group-region=$REGION
+  --network-endpoint-group-region=$REGION```
 
 ### Set up the DNS Record
 # Reserve an external regional IP
-IP_NAME=mtl-ip
+```IP_NAME=mtl-ip```
 
 **--Set it up**
-gcloud compute addresses create $IP_NAME --region=$REGION
+```gcloud compute addresses create $IP_NAME --region=$REGION```
 
-IP_ADDR=$(gcloud compute addresses describe $IP_NAME --region=$REGION --format='value(address)')
+```IP_ADDR=$(gcloud compute addresses describe $IP_NAME --region=$REGION --format='value(address)')```
 
 **--Read it back**
-gcloud compute addresses describe $IP_NAME \
-  --region=$REGION --format="get(address)"
+```gcloud compute addresses describe $IP_NAME \
+  --region=$REGION --format="get(address)"```
 
  Mine is 136.117.77.40
 1. In the DNS provider, under my bintiholdings.com domain, I create an A record with:
@@ -181,34 +181,34 @@ FWR=${SERVICE}--fw
 
 # Managed cert for your domain (DNS A/AAAA must point to the LB IP; cert will auto-provision)
 # Create DNS authorization (will output a TXT record to add at your DNS)
-gcloud certificate-manager dns-authorizations create $AUTH \
-  --domain=$HOST --region=$REGION
+```gcloud certificate-manager dns-authorizations create $AUTH \
+  --domain=$HOST --region=$REGION```
 
-gcloud compute ssl-certificates create $CERT \
+```gcloud compute ssl-certificates create $CERT \
   --domains=$HOST \
-  --region=$REGION
+  --region=$REGION```
 
 # HTTPS proxy
-gcloud compute region-target-https-proxies create $PROXY \
+```gcloud compute region-target-https-proxies create $PROXY \
   --url-map=$URLMAP \
   --ssl-certificates=$CERT \
-  --region=$REGION
+  --region=$REGION```
 
-gcloud compute networks subnets create proxy-only-$REGION \
+```gcloud compute networks subnets create proxy-only-$REGION \
   --purpose=REGIONAL_MANAGED_PROXY \
   --role=ACTIVE \
   --region=$REGION \
   --network=default \
-  --range=10.129.0.0/23
+  --range=10.129.0.0/23```
 
 
 
 # Forwarding rule (443)
-gcloud compute forwarding-rules create $FWR \
+```gcloud compute forwarding-rules create $FWR \
   --address=$IP_NAME \
   --target-https-proxy=$PROXY \
   --ports=443 \
-  --region=$REGION
+  --region=$REGION```
 
 
 
@@ -217,9 +217,9 @@ gcloud compute forwarding-rules create $FWR \
 2. Test the process end to end by triggering the share from the course banner share button. If it works, it's time to lock it down.
 3. We have tried JWT tokens, and a gateway. Now we are trying restricted ingress. We'll have to see what happens. 
 1. When everything is working and you don't want anyone hitting the service url directly you can run: 
-gcloud run services update mtl --region=us-west1 --no-default-url
-1. gcloud run services describe mtl --region=us-west1 \
-  --format='value(metadata.annotations["run.googleapis.com/ingress-status"])'
+```gcloud run services update mtl --region=us-west1 --no-default-url```
+1. ```gcloud run services describe mtl --region=us-west1 \
+  --format='value(metadata.annotations["run.googleapis.com/ingress-status"])'```
 # expected: internal-and-cloud-load-balancing
 1. 
 
