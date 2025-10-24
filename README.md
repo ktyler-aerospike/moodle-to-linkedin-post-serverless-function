@@ -75,7 +75,7 @@
 1. Run this command to set 3 variables: 
     ```PROJECT_ID = 'static-groove-476019-a5'
        REGION="us-west1"
-       SERVICE="mtl"``` (this is the name of your Cloud Run function)
+       SERVICE="mtl"```
 1. Set your project as context for future commands:
      ```gcloud config set project $PROJECT_ID```
    
