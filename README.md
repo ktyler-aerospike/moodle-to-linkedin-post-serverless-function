@@ -62,30 +62,39 @@
 4. Switching your focus back to the main Service Details interface, click Deploy. There should be no errors this time. 
 
 ### Test Cloud Run
-1. Find the service URL. It will be your Cloud run name, a hashed number, your region, and run.app.
+1. Find the service URL. It will be your Cloud run name, a hashed number, your region, and "run.app".
 1. Copy and paste the URL somewhere you can easily edit it.
-2. Go to the Linkedin developers page and inside your LinkedIn app, find the Auth tab and in the OAuth section add your service URL plus **/auth/linkedin/callback** as an Authorized Redirect URL. 
-1. Using the service URL again, add **/auth/linkedin/start?badgeid=aero-101&verifcode=FAKECODE** to the end of the url (instead of /auth/linkedin/callback) 
+2. Go to the Linkedin developers page and inside your LinkedIn app, find the **Auth** tab and in the **OAuth** section add your service URL plus **/auth/linkedin/callback** as an Authorized Redirect URL. 
+1. Using the service URL again, add **/auth/linkedin/start?badgeid=aero-101&verifcode=FAKECODE** to the end of the url (instead of /auth/linkedin/callback) You can leave it saying FAKECODE -- that's a valid code for testing. 
 1. Copy and paste the whole thing into a browswer tab address bar and click **enter**.
-1. A LinkedIn login screen should appear. After logging in you should see a button. Click the button and view the post created by this service. The verification will not work bc FAKECODE is not a real certificate but the other link should work. When this service is paired with the Moodle plugin, a real certificate code is passed along and can be verified.
+1. A LinkedIn login screen should appear. After logging in you should see a button. Click the button and view the post created by this service. When this service is paired with the Moodle plugin, a real certificate code is passed along and can be verified.
 
 ### Update the INGRESS SETTINGS
 1. You have to use gcloud for this unfortunately.
-1. gcloud auth login
-1. Set your project:  gcloud config set project PROJECT_NAME
-1. SET IT:
-   # set service ingress explicitly
-  gcloud run services update post-as-function \
-     --region=us-west1 \
+    **gcloud auth login**
+2. Run this command to set 2 variables: 
+    **PROJECT_NAME = 'mtl'**
+     **REGION="us-west1"**
+1. Set your project:
+     **gcloud config set project $PROJECT_NAME**
+3. Set more variables:
+   **REGION="us-west1"**
+   
+1. **SET THE INGRESS POLICY:**
+    # set service ingress explicitly
+  gcloud run services update $PROJECT_NAME \
+     --region=$REGION \
      --ingress=internal-and-cloud-load-balancing
-1. CHECK IT:   
-   gcloud run services describe mtl --region=us-west1 \
+1. **CHECK THAT THE INGRESS POLICY IS IN EFFECT** 
+   gcloud run services describe $PROJECT_NAME --region=$REGION \
    --format='table(
     metadata.annotations["run.googleapis.com/ingress-status"],
     spec.template.metadata.annotations["run.googleapis.com/ingress"]
    )'
-1. gcloud run services describe mtl --region=us-west1 \
+   **YOU CAN ALSO CHECK THEM BY NAME**
+1. gcloud run services describe $PROJECT_NAME --region=$REGION \
   --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'
+   
 1. When the ingress settings are confirmed, there is still no change to the UI bu that's okay. 
 
 ## LOAD BALANCER
@@ -145,52 +154,44 @@ FWR=mtl-fw
 AUTH=mtl-auth
 LOCATION=global
 
-# Create DNS authorization (will output a TXT record to add at your DNS)
-gcloud certificate-manager dns-authorizations create $AUTH \
-  --domain=$HOST \
-  --location=global
-  
-# After adding the TXT and it propagates, create the regional managed cert:
+# Create DNS authorization (will output a CNAME record to add at your DNS)
 **FOR SOME REASON THIS ONE NEEDS THINGS IN QUOTES**
-
-gcloud certificate-manager dns-authorizations create mtl-auth \
-  --domain="mtl.bintioldings.com" \
+gcloud certificate-manager dns-authorizations create mtl-regional-auth \
+  --domain="mtl.bintiholdings.com" \
+  --type="PER_PROJECT_RECORD" \
   --location="global"
 
-If you are asked about enableing certificatemanager.googleapis.com, say yes
-  
+ 
 **--GET BACK THE INFO FOR THE DNS RECORD**
-gcloud certificate-manager dns-authorizations describe mtl-auth --location=global
+gcloud certificate-manager dns-authorizations describe mtl-regional-auth --location=global
 
-**MY RECORD**
-createTime: '2025-10-23T23:02:28.914237250Z'
-dnsResourceRecord:
-  data: 8b4533d1-8349-4192-ad4c-6afea982cfb9.8.authorize.certificatemanager.goog.
-  name: _acme-challenge.mtl.bintioldings.com.
-  type: CNAME
-domain: mtl.bintioldings.com
-name: projects/static-groove-476019-a5/locations/global/dnsAuthorizations/mtl-auth
-type: FIXED_RECORD
-updateTime: '2025-10-23T23:02:29.300491667Z'
+**MY CNAME RECORD INFO FOR THE DNS AUTHORIZATION**
+projects/static-groove-476019-a5/locations/us-west1/dnsAuthorizations/dns-authz-mtl-bintiholdings-com
+DNS Record type: CNAME
+DNS Record name: _acme-challenge_fupu3vphu27nw5vk.mtl.bintiholdings.com.
+DNS Record data: 51d52b85-feca-441b-b2d9-ebb88ef9c692.2.us-west1.authorize.certificatemanager.goog.
 
 
+In bluehost I tried - CNAME as type, refers to OTHER HOST, _acme-challenge.mtl as host-name
+Alias to= 616000c3-9cea-40d3-b5fd-217315a80ba4.14.authorize.certificatemanager.goog.
+TTL 15 minutes
 
-CONFIRM by looking
-gcloud certificate-manager certificates list
+# After adding the CNAME and it propagates, create the regional managed cert:
+gcloud certificate-manager certificates create mtl-bintiholdings-com-cert-regional \
+    --domains="mtl.bintiholdings.com" \
+    --dns-authorizations="projects/static-groove-476019-a5/locations/global/dnsAuthorizations/mtl-regional-auth" \
+    --project="static-groove-476019-a5"
 
-
+   NONE OF THESE REALLY SEEMED TO BE NEEDED:
+    add DNS Reader role to Service Account
+    roles/certificatemanager.editor 
+    certificatemanager.dnsAuthorizations.use
+    certificatemanager.certificates.create
+    
+If you are asked about enabling certificatemanager.googleapis.com, say yes
   
-# After adding the TXT and it propagates, create the regional managed cert:
-gcloud certificate-manager certificates create $CERT \
-  --domains=$HOST \
-  --dns-authorizations=$AUTH \
-  --region=$REGION
-
-
-
-
-
-
+Watch for cert to become active
+  gcloud certificate-manager certificates describe mtl-bintiholdings-com-cert-regional --format="value(managed.status)"
 
 # URL map (default routes to your backend)
 gcloud compute url-maps create $URLMAP \
