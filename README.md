@@ -112,7 +112,7 @@
     BACKEND=${SERVICE}-backend
     ```
 
-1. **Create your Network Endpoint Group**
+1. **Create your Network Endpoint Group - It's a simple neg that points at your Cloud Run Project**
     ```
     gcloud compute network-endpoint-groups create $NEG_NAME \
       --region=$REGION \
@@ -122,7 +122,7 @@
 
 1. If asked, choose to **enable compute.googleapis.com**
 
-1. **Create Your Backend Service**
+1. **Create Your Backend Service Of the Load Balancer - in our case it forwards from Moodle out to our Cloud Run**
     ```
     gcloud compute backend-services create $BACKEND \
       --load-balancing-scheme=EXTERNAL_MANAGED \
@@ -138,7 +138,7 @@
       --network-endpoint-group-region=$REGION
     ```
 
-## Set up the DNS Record 
+## Set up the DNS Record -- This is part of setting up the FrontEnd of the Load Balancer 
 1. **Create an IP Variable**
     ```
     IP_NAME=mtl-ip
@@ -171,7 +171,7 @@
     ```
 
 ## BACK TO GOOGLE CLOUD
-### CREATE THE DNS AUTHS, RECORDS and CERTIFICATE
+### CREATE SSL CERTIFICATE FOR THE LOAD BALANCERS FRONT END
 - It is really important to do this through the UI. The CLI will send you in endless circles. 
 1. Go to **Certificates** in GCP
 1. **Enable** the Cert Mgr API
@@ -192,13 +192,13 @@
 - DNS Record data: 51d52b85-feca-441b-b2d9-ebb88ef9c692.2.us-west1.authorize.certificatemanager.goog.
 
 ## BACK TO GOOGLE CLOUD
-### CREATE THE URL MAP, THE VPC/SUBNET, THE HTTPS PROXY, THE CERT and a FORWARDING RULE
+### CREATE Load Balancer, THE VPC/SUBNET, THE HTTPS PROXY, THE CERT and a FORWARDING RULE
     ```
     HOST=${SERVICE}-bintiholdings.com
-    URLMAP=${SERVICE}-urlmap
+    URLMAP=${SERVICE}-load-balancer
     ```
 
-### URL map (default routes to your backend)
+### This should really be called the Load Balancer but it's called a url-map
 1. CREATE THE URL MAP:
     ```
     gcloud compute url-maps create $URLMAP \
@@ -210,7 +210,7 @@
     gcloud compute url-maps describe mtl-urlmap --region=$REGION
     ```
 
-### CREATE VPC, SUMNET, HTTPS proxy
+### CREATE VPC, SUBNET, HTTPS proxy
 1. Create Some Variables
     ```
     LB_NAME=mtl-lb
@@ -240,6 +240,7 @@
 - Paste 10.129.0.0/23 into IPv4 Range
 - Click Add
 - Your subnet should appear under Reserved proxy-only subnets for load balancing
+
 
 ### Create Network Services including the Load Balancer, the NEG, proxies and forwarding rules
 
