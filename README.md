@@ -6,10 +6,9 @@
 
 
 ## **IN GOOGLE CLOUD CONSOLE**
-1. Create a project. 
+### Create a Project
+1. Create a project, give it a name, make note of the ID. 
 
-
-## **IN GOOGLE CLOUD CONSOLE - WITH YOUR NEW PROJECT SELECTED**
 ### Secret Manager
 1. Go to **Secret Manager**
 1. Click **+ Create Secret**
@@ -103,6 +102,54 @@
     gcloud run services describe $SERVICE --region=$REGION \
       --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'
    ```
+## LOAD BALANCER
+NEG - Network Endpoint Group
+Name your NEG the same as your service plus a dash and neg.
+
+1. **SET MORE SESSION VARIABLES**
+```
+NEG_NAME=${SERVICE}-"neg" -- this will result in the name "mtl-neg"
+BACKEND=${SERVICE}-backend
+```
+
+```gcloud compute network-endpoint-groups create $NEG_NAME \
+  --region=$REGION \
+  --network-endpoint-type=serverless \
+  --cloud-run-service=$SERVICE```
+
+if asked, choose to enable compute.googleapis.com
+
+```gcloud compute backend-services create $BACKEND \
+  --load-balancing-scheme=EXTERNAL_MANAGED \
+  --protocol=HTTP \
+  --region=$REGION```
+
+```gcloud compute backend-services add-backend $BACKEND \
+  --region=$REGION \
+  --network-endpoint-group=$NEG_NAME \
+  --network-endpoint-group-region=$REGION```
+
+### Set up the DNS Record
+# Reserve an external regional IP
+```IP_NAME=mtl-ip```
+
+**--Set it up**
+```gcloud compute addresses create $IP_NAME --region=$REGION```
+
+```IP_ADDR=$(gcloud compute addresses describe $IP_NAME --region=$REGION --format='value(address)')```
+
+**--Read it back**
+```gcloud compute addresses describe $IP_NAME \
+  --region=$REGION --format="get(address)"```
+
+ Mine is 136.117.77.40
+1. In the DNS provider, under my bintiholdings.com domain, I create an A record with:
+   Host: mts
+    Type: A
+    Value: 136.117.77.40 
+    TTL: 300
+1. After propogation you can run: dig mtl.bintiholdings.com +short
+
 
 
 ## CREATE THE DNS AUTHS, RECORDS and CERTIFICATE
