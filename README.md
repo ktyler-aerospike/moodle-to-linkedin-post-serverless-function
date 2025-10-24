@@ -20,7 +20,7 @@
 1. TODO - add info on how to create the flask secret.
 
 
-### Create the Cloud Run Function "project" 
+### Create the Cloud Run Function (Your function will be called the SERVICE throughout these instructions)
 1. Go to **Cloud Run Functions**
 1. Click **Services** in the side bar.
 1. Along the top find the **(...) Write a function link**
@@ -31,7 +31,7 @@
 1. Choose **Allow Public Access** during initial set up for ease of testing. (Later you will lock it down)
 1. Click **Create**.
 
-### Copy the files into the Function "project" 
+### Copy the files into the Function/Service
 1. Replace the **requirements.txt** and **main.py** file contents with the file contents from this repo.
 1. Add an **app.py** file like the one in this repo.
 1. Change the function entrypoint to **linkedinposter**
