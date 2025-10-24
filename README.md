@@ -107,34 +107,44 @@ NEG - Network Endpoint Group
 Name your NEG the same as your service plus a dash and neg.
 
 1. **SET MORE SESSION VARIABLES**
-```
-NEG_NAME=${SERVICE}-"neg" -- this will result in the name "mtl-neg"
-BACKEND=${SERVICE}-backend
-```
+    ```
+    NEG_NAME=${SERVICE}-"neg" -- this will result in the name "mtl-neg"
+    BACKEND=${SERVICE}-backend
+    ```
 
-```gcloud compute network-endpoint-groups create $NEG_NAME \
-  --region=$REGION \
-  --network-endpoint-type=serverless \
-  --cloud-run-service=$SERVICE```
+1. **Create your Network Endpoint Group**
+    ```
+    gcloud compute network-endpoint-groups create $NEG_NAME \
+      --region=$REGION \
+      --network-endpoint-type=serverless \
+      --cloud-run-service=$SERVICE
+    ```
 
-if asked, choose to enable compute.googleapis.com
+1. If asked, choose to enable compute.googleapis.com
 
-```gcloud compute backend-services create $BACKEND \
-  --load-balancing-scheme=EXTERNAL_MANAGED \
-  --protocol=HTTP \
-  --region=$REGION```
+1. **Create Your Backend Service**
+    ```
+    gcloud compute backend-services create $BACKEND \
+      --load-balancing-scheme=EXTERNAL_MANAGED \
+      --protocol=HTTP \
+      --region=$REGION
+    ```
 
+1. **Connect Your NEG to your Backend Service**
 ```gcloud compute backend-services add-backend $BACKEND \
   --region=$REGION \
   --network-endpoint-group=$NEG_NAME \
   --network-endpoint-group-region=$REGION```
 
-### Set up the DNS Record
-# Reserve an external regional IP
-```IP_NAME=mtl-ip```
-
-**--Set it up**
-```gcloud compute addresses create $IP_NAME --region=$REGION```
+## Set up the DNS Record 
+1. **Create an IP Variable**
+    ```
+    IP_NAME=mtl-ip
+    ```
+1. **Reserve an external regional IP**
+    ```
+    gcloud compute addresses create $IP_NAME --region=$REGION
+    ```
 
 ```IP_ADDR=$(gcloud compute addresses describe $IP_NAME --region=$REGION --format='value(address)')```
 
