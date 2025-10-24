@@ -87,8 +87,8 @@
    ```gcloud run services describe $SERVICE --region=$REGION \
    --format='table(
     metadata.annotations["run.googleapis.com/ingress-status"],
-    spec.template.metadata.annotations["run.googleapis.com/ingress"]```
-   )'
+    spec.template.metadata.annotations["run.googleapis.com/ingress"]
+   )'```
 1. **YOU CAN ALSO CHECK THEM BY NAME**
     ```gcloud run services describe $SERVICE --region=$REGION \
   --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'```
