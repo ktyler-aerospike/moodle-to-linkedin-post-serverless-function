@@ -68,7 +68,11 @@
 1. Copy and paste the whole thing into a browswer tab address bar and click **enter**.
 1. A LinkedIn login screen should appear. After logging in you should see a button. Click the button and view the post created by this service. When this service is paired with the Moodle plugin, a real certificate code is passed along and can be verified.
 
+</hr>
+# SECURE ACCESS TO THE SERVICE
+
 ### Update the INGRESS SETTINGS
+-- this may not even be needed
 1. You have to use gcloud for this unfortunately.
     ```
    gcloud auth login
@@ -103,6 +107,38 @@
       --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'
    ```
 ## LOAD BALANCER
+- The kind of Load Balancer we are creating is called a url-map behind the scenes.
+- Our LB will be called mtl-load-balancer
+- Our LB will need a VPC network with a subnet so we'll create that first.
+
+### Create the VPC Network with Subnet
+1. Go to VPC
+2. Select + Create a VPC network
+3. Name it mtl-lb-network
+4. Choose your region (ours is us-west1)
+5. Custom
+1. DO NOT CREATE A SUBNET YET
+2. DO NOT SELECT a FIREWALL RULE YET
+3. Disabled
+7. Regional
+8. Legacy
+9. DO NOT USE DNS CONFIG
+10. When VPC is created, reenter and choose the SUBNETS TAB:
+    1. Choose + Add subnet
+    1. mtl-lb-network-subnet
+    1. Choose your region.
+    1. Choose Regional Managed Proxy
+    1. Choose Active
+    1. Leave box unchecked I guess?
+    1. Paste 10.129.0.0/23 into IPv4 Range
+    1. Click Add
+    1. Your subnet should appear under Reserved proxy-only subnets for load balancing
+
+
+
+
+
+
 - NEG - Network Endpoint Group
 - Name your NEG the same as your service plus a dash and neg.
 
@@ -210,7 +246,7 @@
     gcloud compute url-maps describe mtl-urlmap --region=$REGION
     ```
 
-### CREATE VPC, SUBNET, HTTPS proxy
+### CREATE VPC & SUBNET
 1. Create Some Variables
     ```
     LB_NAME=mtl-lb
@@ -228,18 +264,7 @@
    ```
    gcloud compute networks list
     ```
-1. **Use the UI to Create the proxy-only subnet inside the VPC**
-- Locate the VPC you just created and click into it
-- Choose the Subnets tab
-- Click + Add Subnet
-- In the sidebar: Name it mtl-lb-network-subnet
-- Choose your region.
-- Choose Regional Managed Proxy
-- Choose Active
-- Leave box unchecked I guess?
-- Paste 10.129.0.0/23 into IPv4 Range
-- Click Add
-- Your subnet should appear under Reserved proxy-only subnets for load balancing
+
 
 
 ### Create Network Services including the Load Balancer, the NEG, proxies and forwarding rules
