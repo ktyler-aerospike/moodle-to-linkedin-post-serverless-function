@@ -196,8 +196,6 @@
     ```
     HOST=${SERVICE}-bintiholdings.com
     URLMAP=${SERVICE}-urlmap
-    PROXY=${SERVICE}-https-proxy
-    FWR=${SERVICE}--fw
     ```
 
 ### URL map (default routes to your backend)
@@ -218,19 +216,19 @@
     LB_NAME=mtl-lb
     NETWORK=mtl-lb-network
     TARGET_PROXY=mtl-http-proxy
-    FORWARDING_RULE=mtl-fw-rule
-    ADDRESS_NAME=my-lb-ip
+    FORWARDING_RULE=mtl-fw-rule-80
+    FR2=mtl-fw-rule-443
     ```
     
 1. **Create VPC**
     ```
     gcloud compute networks create $NETWORK --subnet-mode=custom
     ```
-1. **Check it was created**
+1. **Check that the VPC was created**
    ```
    gcloud compute networks list
     ```
-1. ** Use the UI to Create the proxy-only subnet**
+1. **Use the UI to Create the proxy-only subnet inside the VPC**
 - Locate the VPC you just created and click into it
 - Choose the Subnets tab
 - Click + Add Subnet
@@ -243,65 +241,32 @@
 - Click Add
 - Your subnet should appear under Reserved proxy-only subnets for load balancing
 
+### Create Network Services including the Load Balancer, the NEG, proxies and forwarding rules
 
-
+1. **Create target HTTP proxy**
    ```   
-
-    ```
-
-# 4. Create target HTTP proxy
-gcloud compute target-http-proxies create $TARGET_PROXY \
+    gcloud compute target-http-proxies create $TARGET_PROXY \
     --region=$REGION \
-    --url-map=$URL_MAP
-
-# 5. Reserve external regional IP
-gcloud compute addresses create $ADDRESS_NAME \
-    --region=$REGION \
-    --ip-version=IPV4 \
-    --network-tier=STANDARD
-
-# 6. Create forwarding rule for HTTP (port 80)
-gcloud compute forwarding-rules create $FORWARDING_RULE \
-    --region=$REGION \
-    --load-balancing-scheme=EXTERNAL_MANAGED \
-    --address=$ADDRESS_NAME \
-    --target-http-proxy=$TARGET_PROXY \
-    --ports=80
-
-# 7. (For HTTPS: similar steps with target-https-proxy, ssl_certificate etc on port 443)
-
-
-
-
-
-
-
-    gcloud compute region-target-https-proxies create $PROXY \
-      --url-map=$URLMAP \
-      --ssl-certificates=$CERT \
-      --region=$REGION
+    --url-map=$URLMAP
+   ```
+1. **Check the proxy details**
     ```
-1. Check the proxy details
-    ```
-    gcloud compute region-target-https-proxies list
-
-
-
-
-    ```
-    gcloud compute networks subnets create proxy-only-$REGION \
-      --purpose=REGIONAL_MANAGED_PROXY \
-      --role=ACTIVE \
-      --region=$REGION \
-      --network=default \
-      --range=10.129.0.0/23
+    gcloud compute target-http-proxies list
     ```
 
-
-
+1. **Create forwarding rule for HTTP (port 80)**
+    ```   
+    gcloud compute forwarding-rules create $FORWARDING_RULE \
+        --region=$REGION \
+        --load-balancing-scheme=EXTERNAL_MANAGED \
+        --address=mtl-ip \
+        --target-http-proxy=$TARGET_PROXY \
+        --ports=80
+    ```
+    
 # Forwarding rule (443)
 ```gcloud compute forwarding-rules create $FWR \
-  --address=$IP_NAME \
+  --address=mtl-ip \
   --target-https-proxy=$PROXY \
   --ports=443 \
   --region=$REGION```
@@ -310,8 +275,8 @@ gcloud compute forwarding-rules create $FORWARDING_RULE \
 
 ## SECURING THE PROCESS
 1. Once the above is working, test it by triggering it from moodle. You will need to go into the Moodle Site Admin Plugins page and find the Local section and click on **LinkedIn Share for Certificates** in the Gateway Endpoint field. put your SERVICE URL again (nothing added to the end) TODO - or do we add auth/linkedin/start (will depend on final solution.
-2. Test the process end to end by triggering the share from the course banner share button. If it works, it's time to lock it down.
-3. We have tried JWT tokens, and a gateway. Now we are trying restricted ingress. We'll have to see what happens. 
+1. Test the process end to end by triggering the share from the course banner share button. If it works, it's time to lock it down.
+1. We have tried JWT tokens, and a gateway. Now we are trying restricted ingress. We'll have to see what happens. 
 1. When everything is working and you don't want anyone hitting the service url directly you can run: 
 ```gcloud run services update mtl --region=us-west1 --no-default-url```
 1. ```gcloud run services describe mtl --region=us-west1 \
