@@ -64,7 +64,7 @@
 ### Test Cloud Run
 1. Find the service URL. It will be your Cloud run name, a hashed number, your region, and "run.app".
 1. Copy and paste the URL somewhere you can easily edit it.
-2. Go to the Linkedin developers page and inside your LinkedIn app, find the **Auth** tab and in the **OAuth** section add your service URL plus **/auth/linkedin/callback** as an Authorized Redirect URL. 
+1. Go to the Linkedin developers page and inside your LinkedIn app, find the **Auth** tab and in the **OAuth** section add your service URL plus **/auth/linkedin/callback** as an Authorized Redirect URL. 
 1. Using the service URL again, add **/auth/linkedin/start?badgeid=aero-101&verifcode=FAKECODE** to the end of the url (instead of /auth/linkedin/callback) You can leave it saying FAKECODE -- that's a valid code for testing. 
 1. Copy and paste the whole thing into a browswer tab address bar and click **enter**.
 1. A LinkedIn login screen should appear. After logging in you should see a button. Click the button and view the post created by this service. When this service is paired with the Moodle plugin, a real certificate code is passed along and can be verified.
@@ -72,27 +72,25 @@
 ### Update the INGRESS SETTINGS
 1. You have to use gcloud for this unfortunately.
     **gcloud auth login**
-2. Run this command to set 2 variables: 
-    **PROJECT_NAME = 'mtl'**
-     **REGION="us-west1"**
-1. Set your project:
-     **gcloud config set project $PROJECT_NAME**
-3. Set more variables:
-   **REGION="us-west1"**
+1. Run this command to set 3 variables: 
+    **PROJECT_ID = 'static-groove-476019-a5'**
+    **REGION="us-west1"**
+    **SERVICE="mtl"** (this is the name of your Cloud Run function)
+1. Set your project as context for future commands:
+     **gcloud config set project $PROJECT_ID**
    
 1. **SET THE INGRESS POLICY:**
-    # set service ingress explicitly
-  gcloud run services update $PROJECT_NAME \
+   gcloud run services update $SERVICE \
      --region=$REGION \
      --ingress=internal-and-cloud-load-balancing
 1. **CHECK THAT THE INGRESS POLICY IS IN EFFECT** 
-   gcloud run services describe $PROJECT_NAME --region=$REGION \
+   gcloud run services describe $SERVICE --region=$REGION \
    --format='table(
     metadata.annotations["run.googleapis.com/ingress-status"],
     spec.template.metadata.annotations["run.googleapis.com/ingress"]
    )'
-   **YOU CAN ALSO CHECK THEM BY NAME**
-1. gcloud run services describe $PROJECT_NAME --region=$REGION \
+1. **YOU CAN ALSO CHECK THEM BY NAME**
+    gcloud run services describe $SERVICE --region=$REGION \
   --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'
    
 1. When the ingress settings are confirmed, there is still no change to the UI bu that's okay. 
@@ -102,11 +100,9 @@
 NEG - Network Endpoint Group
 Name your NEG the same as your service plus a dash and neg.
 
-NEG_NAME=mtl-neg
-BACKEND=mtl-backend
-REGION=us-west1
-SERVICE=mtl
-
+1. **SET MORE SESSION VARIABLES**
+NEG_NAME=${SERVICE}-"neg" -- this will result in the name "mtl-neg"
+BACKEND=${SERVICE}-backend
 
 gcloud compute network-endpoint-groups create $NEG_NAME \
   --region=$REGION \
@@ -146,12 +142,12 @@ gcloud compute addresses describe $IP_NAME \
 1. After propogation you can run: dig mtl.bintiholdings.com +short
 
 ### CREATE THE URL MAP, THE HTTPS PROXY, the CERT and a FORWARDING RULE
-HOST=mtl.bintiholdings.com
-URLMAP=mtl-urlmap
-PROXY=mtl-https-proxy
-CERT=mtl-cert
-FWR=mtl-fw
-AUTH=mtl-auth
+HOST=${SERVICE}-bintiholdings.com
+URLMAP=${SERVICE}-urlmap
+PROXY=${SERVICE}-https-proxy
+CERT=${SERVICE}-cert
+FWR=${SERVICE}--fw
+AUTH=${SERVICE}--auth
 LOCATION=global
 
 # Create DNS authorization (will output a CNAME record to add at your DNS)
