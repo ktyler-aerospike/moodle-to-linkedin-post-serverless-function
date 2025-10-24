@@ -102,9 +102,7 @@
    ```
     gcloud run services describe $SERVICE --region=$REGION \
       --format='value(spec.template.metadata.annotations["run.googleapis.com/ingress"])'
-  ```
-1. When the ingress settings are confirmed, there is still no change to the UI bu that's okay. 
-
+   ```
 
 
 ## CREATE THE DNS AUTHS, RECORDS and CERTIFICATE
