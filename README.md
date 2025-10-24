@@ -127,6 +127,7 @@ IP_NAME=mtl-ip
 
 **--Set it up**
 gcloud compute addresses create $IP_NAME --region=$REGION
+
 IP_ADDR=$(gcloud compute addresses describe $IP_NAME --region=$REGION --format='value(address)')
 
 **--Read it back**
@@ -141,25 +142,18 @@ gcloud compute addresses describe $IP_NAME \
     TTL: 300
 1. After propogation you can run: dig mtl.bintiholdings.com +short
 
-### CREATE THE URL MAP, THE HTTPS PROXY, the CERT and a FORWARDING RULE
-HOST=${SERVICE}-bintiholdings.com
-URLMAP=${SERVICE}-urlmap
-PROXY=${SERVICE}-https-proxy
-CERT=${SERVICE}-cert
-FWR=${SERVICE}--fw
-AUTH=${SERVICE}--auth
-LOCATION=global
-
-# Create DNS authorization (will output a CNAME record to add at your DNS)
-**FOR SOME REASON THIS ONE NEEDS THINGS IN QUOTES**
-gcloud certificate-manager dns-authorizations create mtl-regional-auth \
-  --domain="mtl.bintiholdings.com" \
-  --type="PER_PROJECT_RECORD" \
-  --location="global"
-
- 
-**--GET BACK THE INFO FOR THE DNS RECORD**
-gcloud certificate-manager dns-authorizations describe mtl-regional-auth --location=global
+## CREATE THE DNS AUTHS, RECORDS and CERTIFICATE
+It is really important to do this through the UI. The CLI will send you in endless circles. 
+1. Go to Certificates in GCP
+1. Enable the Cert Mgr API
+1. When the Cert Manager UI appears, click Create Certificate
+1. Name your cert mtl-regional-cert, choose Regional and set region to your service region (for me it's us-west1)
+1. Choose a Google-managed certificate
+1. Add the domain landing address you are using as the entry point for your load-balancer - for me its mtl.bintiholdings.com
+1. Auth type is DNS Auth and VERY IMPORTANT - click Create Missing DNS Authorization before hitting the CREATE button.Approve in sidebar.
+2. Click Create to Complete your Certificate. 
+1. The row will show Active column with a green circle and checkmark when the DNS record is set up correctly.
+Click back into the Certificate to get the info you need to create your second DNS record. 
 
 **MY CNAME RECORD INFO FOR THE DNS AUTHORIZATION**
 projects/static-groove-476019-a5/locations/us-west1/dnsAuthorizations/dns-authz-mtl-bintiholdings-com
@@ -168,31 +162,22 @@ DNS Record name: _acme-challenge_fupu3vphu27nw5vk.mtl.bintiholdings.com.
 DNS Record data: 51d52b85-feca-441b-b2d9-ebb88ef9c692.2.us-west1.authorize.certificatemanager.goog.
 
 
-In bluehost I tried - CNAME as type, refers to OTHER HOST, _acme-challenge.mtl as host-name
-Alias to= 616000c3-9cea-40d3-b5fd-217315a80ba4.14.authorize.certificatemanager.goog.
-TTL 15 minutes
-
-# After adding the CNAME and it propagates, create the regional managed cert:
-gcloud certificate-manager certificates create mtl-bintiholdings-com-cert-regional \
-    --domains="mtl.bintiholdings.com" \
-    --dns-authorizations="projects/static-groove-476019-a5/locations/global/dnsAuthorizations/mtl-regional-auth" \
-    --project="static-groove-476019-a5"
-
-   NONE OF THESE REALLY SEEMED TO BE NEEDED:
-    add DNS Reader role to Service Account
-    roles/certificatemanager.editor 
-    certificatemanager.dnsAuthorizations.use
-    certificatemanager.certificates.create
-    
-If you are asked about enabling certificatemanager.googleapis.com, say yes
-  
-Watch for cert to become active
-  gcloud certificate-manager certificates describe mtl-bintiholdings-com-cert-regional --format="value(managed.status)"
+### CREATE THE URL MAP, THE HTTPS PROXY, the CERT and a FORWARDING RULE
+'''
+HOST=${SERVICE}-bintiholdings.com
+URLMAP=${SERVICE}-urlmap
+PROXY=${SERVICE}-https-proxy
+FWR=${SERVICE}--fw
+'''
 
 # URL map (default routes to your backend)
-gcloud compute url-maps create $URLMAP \
+1. CREATE THE URL MAP:
+'''gcloud compute url-maps create $URLMAP \
   --default-service=$BACKEND \
   --region=$REGION
+'''
+1. Check the map's details: gcloud compute url-maps describe mtl-urlmap --region=$REGION
+
 
 # Managed cert for your domain (DNS A/AAAA must point to the LB IP; cert will auto-provision)
 # Create DNS authorization (will output a TXT record to add at your DNS)
