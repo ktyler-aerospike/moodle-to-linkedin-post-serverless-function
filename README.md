@@ -163,19 +163,19 @@ DNS Record data: 51d52b85-feca-441b-b2d9-ebb88ef9c692.2.us-west1.authorize.certi
 
 
 ### CREATE THE URL MAP, THE HTTPS PROXY, the CERT and a FORWARDING RULE
-'''
+```
 HOST=${SERVICE}-bintiholdings.com
 URLMAP=${SERVICE}-urlmap
 PROXY=${SERVICE}-https-proxy
 FWR=${SERVICE}--fw
-'''
+```
 
 # URL map (default routes to your backend)
 1. CREATE THE URL MAP:
-'''gcloud compute url-maps create $URLMAP \
+```gcloud compute url-maps create $URLMAP \
   --default-service=$BACKEND \
   --region=$REGION
-'''
+```
 1. Check the map's details: gcloud compute url-maps describe mtl-urlmap --region=$REGION
 
 
