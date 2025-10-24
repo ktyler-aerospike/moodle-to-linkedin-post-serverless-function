@@ -120,7 +120,7 @@
       --cloud-run-service=$SERVICE
     ```
 
-1. If asked, choose to enable compute.googleapis.com
+1. If asked, choose to **enable compute.googleapis.com**
 
 1. **Create Your Backend Service**
     ```
@@ -131,10 +131,12 @@
     ```
 
 1. **Connect Your NEG to your Backend Service**
-```gcloud compute backend-services add-backend $BACKEND \
-  --region=$REGION \
-  --network-endpoint-group=$NEG_NAME \
-  --network-endpoint-group-region=$REGION```
+    ```
+    gcloud compute backend-services add-backend $BACKEND \
+      --region=$REGION \
+      --network-endpoint-group=$NEG_NAME \
+      --network-endpoint-group-region=$REGION
+    ```
 
 ## Set up the DNS Record 
 1. **Create an IP Variable**
@@ -145,81 +147,153 @@
     ```
     gcloud compute addresses create $IP_NAME --region=$REGION
     ```
+1. **Read it back**
+    ```
+    gcloud compute addresses describe $IP_NAME \
+      --region=$REGION --format="get(address)"
+    ```
 
-```IP_ADDR=$(gcloud compute addresses describe $IP_NAME --region=$REGION --format='value(address)')```
+1. **Assign your reserved IP to a new variable**
+    ```
+    IP_ADDR=$(gcloud compute addresses describe $IP_NAME --region=$REGION --format='value(address)')
+    ```
+- Mine is 136.117.77.40
 
-**--Read it back**
-```gcloud compute addresses describe $IP_NAME \
-  --region=$REGION --format="get(address)"```
+## YOUR DOMAIN AND DNS MANAGER (for me it's Bluehost)
+1. In the DNS provider, under the correct domain, I create an A record with:
+   - Host: mts
+   - Type: A
+   - Value: 136.117.77.40 
+   - TTL: 300
+1. After propogation you can run:
+    ```
+         dig mtl.bintiholdings.com +short
+    ```
 
- Mine is 136.117.77.40
-1. In the DNS provider, under my bintiholdings.com domain, I create an A record with:
-   Host: mts
-    Type: A
-    Value: 136.117.77.40 
-    TTL: 300
-1. After propogation you can run: dig mtl.bintiholdings.com +short
-
-
-
-## CREATE THE DNS AUTHS, RECORDS and CERTIFICATE
-It is really important to do this through the UI. The CLI will send you in endless circles. 
-1. Go to Certificates in GCP
-1. Enable the Cert Mgr API
-1. When the Cert Manager UI appears, click Create Certificate
-1. Name your cert mtl-regional-cert, choose Regional and set region to your service region (for me it's us-west1)
-1. Choose a Google-managed certificate
+## BACK TO GOOGLE CLOUD
+### CREATE THE DNS AUTHS, RECORDS and CERTIFICATE
+- It is really important to do this through the UI. The CLI will send you in endless circles. 
+1. Go to **Certificates** in GCP
+1. **Enable** the Cert Mgr API
+1. When the Cert Manager UI appears, click **Create Certificate**
+1. Name your cert **mtl-regional-cert**, choose **Regional** and set region to your service region (for me it's us-west1)
+1. Choose a **Google-managed certificate**
 1. Add the domain landing address you are using as the entry point for your load-balancer - for me its mtl.bintiholdings.com
-1. Auth type is DNS Auth and VERY IMPORTANT - click Create Missing DNS Authorization before hitting the CREATE button.Approve in sidebar.
-2. Click Create to Complete your Certificate. 
-1. The row will show Active column with a green circle and checkmark when the DNS record is set up correctly.
-Click back into the Certificate to get the info you need to create your second DNS record. 
+1. Auth type is DNS Auth and VERY IMPORTANT - click** Create Missing DNS Authorization **before hitting the CREATE button. **Approve** in sidebar.
+1. Click **Create** to Complete your Certificate. 
+1. The row will show **Active** column with a green circle and checkmark when the DNS record is set up correctly.
+1. Click back into the Certificate to get the info you need to create your second DNS record. 
 
-**MY CNAME RECORD INFO FOR THE DNS AUTHORIZATION**
-projects/static-groove-476019-a5/locations/us-west1/dnsAuthorizations/dns-authz-mtl-bintiholdings-com
-DNS Record type: CNAME
-DNS Record name: _acme-challenge_fupu3vphu27nw5vk.mtl.bintiholdings.com.
-DNS Record data: 51d52b85-feca-441b-b2d9-ebb88ef9c692.2.us-west1.authorize.certificatemanager.goog.
+## YOUR DOMAIN AND DNS MANAGER (for me it's Bluehost)
+### CREATE ANOTHER CNAME RECORD 
+- projects/static-groove-476019-a5/locations/us-west1/dnsAuthorizations/dns-authz-mtl-bintiholdings-com
+- DNS Record type: CNAME
+- DNS Record name: _acme-challenge_fupu3vphu27nw5vk.mtl.bintiholdings.com.
+- DNS Record data: 51d52b85-feca-441b-b2d9-ebb88ef9c692.2.us-west1.authorize.certificatemanager.goog.
 
-
+## BACK TO GOOGLE CLOUD
 ### CREATE THE URL MAP, THE HTTPS PROXY, the CERT and a FORWARDING RULE
-```
-HOST=${SERVICE}-bintiholdings.com
-URLMAP=${SERVICE}-urlmap
-PROXY=${SERVICE}-https-proxy
-FWR=${SERVICE}--fw
-```
+    ```
+    HOST=${SERVICE}-bintiholdings.com
+    URLMAP=${SERVICE}-urlmap
+    PROXY=${SERVICE}-https-proxy
+    FWR=${SERVICE}--fw
+    ```
 
 # URL map (default routes to your backend)
 1. CREATE THE URL MAP:
-```gcloud compute url-maps create $URLMAP \
-  --default-service=$BACKEND \
-  --region=$REGION
-```
-1. Check the map's details: gcloud compute url-maps describe mtl-urlmap --region=$REGION
+    ```
+    gcloud compute url-maps create $URLMAP \
+      --default-service=$BACKEND \
+      --region=$REGION
+    ```
+1. Check the map's details:
+    ```  
+    gcloud compute url-maps describe mtl-urlmap --region=$REGION
+    ```
+
+### CREATE VPC, SUMBET, HTTPS proxy
+1. Create Some Variables
+    ```
+    LB_NAME=mtl-lb
+    NETWORK=mtl-lb-network
+    PROXY_SUBNET=proxy-only-subnet
+    PROXY_RANGE=10.129.0.0/23
+    TARGET_PROXY=my-http-proxy
+    FORWARDING_RULE=mtl-fw-rule
+    ADDRESS_NAME=my-lb-ip
+    ```
+    
+1. **Create VPC**
+    ```
+    gcloud compute networks create $NETWORK --subnet-mode=custom
+    ```
+1. Check it was created
+   ```
+   gcloud compute networks list
+    ```
+
+proxy-only subnet
+gcloud compute networks subnets create $PROXY_SUBNET \
+    --network=$NETWORK \
+    --region=$REGION \
+    --purpose=REGIONAL_MANAGED_PROXY \
+    --ip-cidr-range=$PROXY_RANGE
+
+1. (Assume backend already created: e.g., serverless NEG, instance group, etc)
+
+# 3. Create a URL map
+gcloud compute url-maps create $URL_MAP \
+    --region=$REGION \
+    --default-service=$BACKEND_SERVICE
+
+# 4. Create target HTTP proxy
+gcloud compute target-http-proxies create $TARGET_PROXY \
+    --region=$REGION \
+    --url-map=$URL_MAP
+
+# 5. Reserve external regional IP
+gcloud compute addresses create $ADDRESS_NAME \
+    --region=$REGION \
+    --ip-version=IPV4 \
+    --network-tier=STANDARD
+
+# 6. Create forwarding rule for HTTP (port 80)
+gcloud compute forwarding-rules create $FORWARDING_RULE \
+    --region=$REGION \
+    --load-balancing-scheme=EXTERNAL_MANAGED \
+    --address=$ADDRESS_NAME \
+    --target-http-proxy=$TARGET_PROXY \
+    --ports=80
+
+# 7. (For HTTPS: similar steps with target-https-proxy, ssl_certificate etc on port 443)
 
 
-# Managed cert for your domain (DNS A/AAAA must point to the LB IP; cert will auto-provision)
-# Create DNS authorization (will output a TXT record to add at your DNS)
-```gcloud certificate-manager dns-authorizations create $AUTH \
-  --domain=$HOST --region=$REGION```
 
-```gcloud compute ssl-certificates create $CERT \
-  --domains=$HOST \
-  --region=$REGION```
 
-# HTTPS proxy
-```gcloud compute region-target-https-proxies create $PROXY \
-  --url-map=$URLMAP \
-  --ssl-certificates=$CERT \
-  --region=$REGION```
 
-```gcloud compute networks subnets create proxy-only-$REGION \
-  --purpose=REGIONAL_MANAGED_PROXY \
-  --role=ACTIVE \
-  --region=$REGION \
-  --network=default \
-  --range=10.129.0.0/23```
+
+
+    gcloud compute region-target-https-proxies create $PROXY \
+      --url-map=$URLMAP \
+      --ssl-certificates=$CERT \
+      --region=$REGION
+    ```
+1. Check the proxy details
+    ```
+    gcloud compute region-target-https-proxies list
+
+
+
+
+    ```
+    gcloud compute networks subnets create proxy-only-$REGION \
+      --purpose=REGIONAL_MANAGED_PROXY \
+      --role=ACTIVE \
+      --region=$REGION \
+      --network=default \
+      --range=10.129.0.0/23
+    ```
 
 
 
