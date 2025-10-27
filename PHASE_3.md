@@ -1,17 +1,22 @@
-
-
-### CREATE A REGIONAL CERTIFICATE
-- It is really important to do this through the UI. The CLI will send you in endless circles. 
-1. Go to **Certificates** in GCP
-1. **Enable** the Cert Mgr API
-1. When the Cert Manager UI appears, click **Create Certificate**
-1. Name your cert **mtl-regional-cert**, choose **Regional** and set region to your service region (for me it's us-west1)
-1. Choose a **Google-managed certificate**
-1. Add the domain landing address you are using as the entry point for your load-balancer - for me its mtl.bintiholdings.com
-1. Auth type is DNS Auth and VERY IMPORTANT - click** Create Missing DNS Authorization **before hitting the CREATE button. **Approve** in sidebar.
-1. Click **Create** to Complete your Certificate. 
-1. The row will show **Active** column with a green circle and checkmark when the DNS record is set up correctly.
-1. Click back into the Certificate to get the info you need to create your second DNS record. 
+### ADD A SECOND FRONTEND IN YOUR LOAD BALANCER
+1. Drill in to the load balancer you created. 
+1. Choose **Edit**.
+2. **Frontend Configuration**
+1. Sidebar: **Add Frontend IP and port**.
+1. Name your second front end similar to the first but use an S on the end of HTTP. https
+1. Choose the **HTTPS** protocol
+2. **Standard**
+1. Leave Port **443**
+2. Choose the IP address you already created and tested for your load balancer. Both frontends will use the same IP. One will use port 80 and the other will use 443. One will have an SSL certificate with it and the other will not.
+3. Choose **Certificates**.
+4. **Add Certificate**.
+   1. Create a New Certificate.
+   7. Google Managed
+   1. Public
+   2. Domain Names: Put in the address you plan to use something like badge-share.mysite.com (but with your domain instead of mysite)
+   3. DNS Authorization
+   4. Create the DNS Authorization by clicking the blue button. I might appear as if you haven't clicked it, but be patient. DNS Auth info will appear. 
+9. Copy and past the DNS Auth info somewhere. 
 
 ## GO TO YOUR DOMAIN AND DNS MANAGER (for me it's Bluehost)
 ### CREATE A CNAME RECORD 
