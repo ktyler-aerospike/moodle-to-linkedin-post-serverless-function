@@ -1,7 +1,7 @@
 # SECURE ACCESS TO THE SERVICE
 
 ### Create the VPC Network with Subnet
-1. Go to VPC
+1. Go to VPC (use the GCP search bar at the top of the console)
 2. Select + Create a VPC network
 3. Name it mtl-lb-network
 4. Choose your region (ours is us-west1)
