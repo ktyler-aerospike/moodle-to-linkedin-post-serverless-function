@@ -45,6 +45,11 @@
 ```gcloud run services update mtl --region=us-west1 --no-default-url```
 1. ```gcloud run services describe mtl --region=us-west1 \
   --format='value(metadata.annotations["run.googleapis.com/ingress-status"])'```
+
+
+
+## THIS IS ALL REALLY IFFY - I don't think it works and I'm not certain it's needed. 
+
 # expected: internal-and-cloud-load-balancing
 1. 
 
